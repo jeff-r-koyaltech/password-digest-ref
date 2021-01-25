@@ -1,5 +1,17 @@
 import createDigest from './create-digest'
 
+const checkTimeStampFreshness = (timestamp) => {
+  const tsDate = new Date(timestamp);
+  const dateNow = new Date();
+  const nowEpochSeconds = tsDate.getTime() / 1000;
+  const tsEpochSeconds = dateNow.getTime() / 1000;
+  
+  const diff = nowEpochSeconds - tsEpochSeconds;
+
+  const freshness = 604800; //1 week worth of seconds
+  return diff < freshness; // todo - check for a freshness interval (24 hours? 1 week? 1 hour?)
+}
+
 const useAuth = (app) => {
   /*
   For testing purposes, you can use these values to pass in Postman:
@@ -25,7 +37,10 @@ const useAuth = (app) => {
       }
       let digestObj = createDigest.createDigest(sharedKey, nonce, timestamp)
 
-      if (digestObj.digest !== digest) {
+      if (
+          (digestObj.digest !== digest) &&
+          (!checkTimeStampFreshness(timestamp))
+          ) {
         res.sendStatus(401)
       } else {
         next()
